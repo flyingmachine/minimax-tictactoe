@@ -1,6 +1,7 @@
 (defparameter *board-size* 9)
 (defparameter *players* '((1 . X) (-1 . O)))
 (defparameter *starting-board* '(nil nil nil nil nil nil nil nil nil))
+(defparameter *board-rankings* (make-hash-table))
 
 (defun game-state (board player)
   (list board
@@ -45,3 +46,31 @@
        (print-row board i)
        (when (not (eql i 3))
          (format t "~%-----------~%"))))
+
+(defun set-rankings (game-state)
+  (let ((moves (caddr game-state)))
+    (for move in moves do
+         (let ((board (car move)))
+           (unless (gethash (board) *board-rankings*)
+             (setf (gethash (board) *board-rankings*) (ranking (game-state))))))))
+
+(defun ranking (game-state)
+  )
+
+(defun winner (board)
+  (let ((win-conditions '(
+                          ;; horizontal wins
+                          (0 1 2)
+                          (3 4 5)
+                          (6 7 8)
+                          
+                          ;; vertical wins
+                          (0 3 6)
+                          (1 4 7)
+                          (2 5 8)
+                         
+                          ;; diagonal wins
+                          (0 4 8)
+                          (6 4 2))))
+    ))
+
