@@ -6,9 +6,9 @@
 (defun game-state (board player)
   (list board
         player
-        (moves board player)))
+        (generate-moves board player)))
 
-(defun moves (board player)
+(defun generate-moves (board player)
   "Returns a list of game states, one for each empty board cell"
   (let ((next-player (* -1 player)))
     (mapcar (lambda (new-board)
@@ -24,9 +24,6 @@
                      ((null current) (f (append processed (list current)) (car remaining) (cdr remaining) (add-board acc processed remaining)))
                      (t (append processed (list current)) (car remaining) (cdr remaining) acc))))
     (f '() (car board) (cdr board) '())))
-
-(defun board (game-state)
-  (car game-state))
 
 (defun x? (player)
   (= (cadr (assoc 'X *players*)) player))
@@ -45,8 +42,18 @@
            (player (cadr ,game-state)))
        ,@body)))
 
+(defmacro with-gs-vars (game-state (&rest vars) &body body)
+  `(let (,@(loop for var in vars collect (list (',var ,game-state))))
+     ,@body))
+
 (defun moves (game-state)
   (caddr game-state))
+
+(defun board (game-state)
+  (car game-state))
+
+(defun player (game-state)
+  (cadr game-state))
 
 (defun cell-for-display (cell)
   (if cell cell " "))
@@ -70,20 +77,17 @@
        (when (not (eql i 3))
          (format t "~%-----------~%"))))
 
+;; replace with cond
+;; write macro to create board player and moves vars
 (defun set-rankings (game-state)
-  (let ((moves (moves game-state)))
-    (for move in moves do
-         (let ((board (board move)))
-           (unless (gethash (board) *board-rankings*)
-             (setf (gethash (board) *board-rankings*) (ranking (game-state))))))))
-
-(defun ranking (game-state)
-  (with-all (game-state)
-    (or (winner board) (ranking-from-moves board player))))
-
-(defun ranking-from-moves (board player)
-  (let)
-  (if (x?)))
+  (if (gethash board *board-rankings*)
+      (gethash board *board-rankings*)
+      (progn
+        (if (winner board)
+            (winner board)
+            (progn
+              (let ((rank-fun (if x? #'max #'min)))
+                (setf (gethash board *board-rankings*) (apply rank-fun (loop for move in moves collect (set-rankings move))))))))))
 
 (defun winner (board)
   (let ((win-conditions '(
