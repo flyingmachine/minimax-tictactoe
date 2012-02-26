@@ -1,5 +1,5 @@
 (defparameter *board-size* 9)
-(defparameter *players* '((1 . X) (-1 . O)))
+(defparameter *players* '((X . 1) (O . -1)))
 (defparameter *starting-board* '(nil nil nil nil nil nil nil nil nil))
 (defparameter *board-rankings* (make-hash-table))
 
@@ -25,6 +25,29 @@
                      (t (append processed (list current)) (car remaining) (cdr remaining) acc))))
     (f '() (car board) (cdr board) '())))
 
+(defun board (game-state)
+  (car game-state))
+
+(defun x? (player)
+  (= (cadr (assoc 'X *players*)) player))
+
+(defun o? (player)
+  (= (cadr (assoc 'O *players*)) player))
+
+(defmacro with-board (game-state &body body)
+  `(let ((board ,(board game-state)))
+     ,@body))
+
+
+(defmacro with-all (game-state &body body)
+  (with-board (game-state)
+    `(let ((moves (caddr ,game-state))
+           (player (cadr ,game-state)))
+       ,@body)))
+
+(defun moves (game-state)
+  (caddr game-state))
+
 (defun cell-for-display (cell)
   (if cell cell " "))
 
@@ -48,14 +71,19 @@
          (format t "~%-----------~%"))))
 
 (defun set-rankings (game-state)
-  (let ((moves (caddr game-state)))
+  (let ((moves (moves game-state)))
     (for move in moves do
-         (let ((board (car move)))
+         (let ((board (board move)))
            (unless (gethash (board) *board-rankings*)
              (setf (gethash (board) *board-rankings*) (ranking (game-state))))))))
 
 (defun ranking (game-state)
-  )
+  (with-all (game-state)
+    (or (winner board) (ranking-from-moves board player))))
+
+(defun ranking-from-moves (board player)
+  (let)
+  (if (x?)))
 
 (defun winner (board)
   (let ((win-conditions '(
