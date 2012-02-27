@@ -31,19 +31,9 @@
 (defun o? (player)
   (= (cadr (assoc 'O *players*)) player))
 
-(defmacro with-board (game-state &body body)
-  `(let ((board ,(board game-state)))
-     ,@body))
-
-
-(defmacro with-all (game-state &body body)
-  (with-board (game-state)
-    `(let ((moves (caddr ,game-state))
-           (player (cadr ,game-state)))
-       ,@body)))
-
-(defmacro with-gs-vars (game-state (&rest vars) &body body)
-  `(let (,@(loop for var in vars collect (list (',var ,game-state))))
+(defmacro with-gs-vars ((game-state &rest vars) &body body)
+  "Example usage: (with-all (game-state moves vars) (body))"
+  `(let ,(loop for var in vars collect `(,var (,var ,game-state)))
      ,@body))
 
 (defun moves (game-state)
@@ -80,14 +70,12 @@
 ;; replace with cond
 ;; write macro to create board player and moves vars
 (defun set-rankings (game-state)
-  (if (gethash board *board-rankings*)
-      (gethash board *board-rankings*)
-      (progn
-        (if (winner board)
-            (winner board)
-            (progn
-              (let ((rank-fun (if x? #'max #'min)))
-                (setf (gethash board *board-rankings*) (apply rank-fun (loop for move in moves collect (set-rankings move))))))))))
+  (with-gs-vars (game-state board moves player)
+    (let ((board-rank (gethash board *board-rankings*)))
+      (cond (board-rank (board-rank))
+            ((winner board) (setf board-rank (winner board)))
+            (t (let ((rank-fun (if (x? player) #'max #'min)))
+                 (setf board-rank (apply rank-fun (loop for move in moves collect (set-rankings move))))))))))
 
 (defun winner (board)
   (let ((win-conditions '(
@@ -104,5 +92,13 @@
                           ;; diagonal wins
                           (0 4 8)
                           (6 4 2))))
-    ))
+    (loop for win-condition in win-conditions
+       when (win-condition-met win-condition board) return (nth (car win-condition) board))))
 
+(defun win-condition-met (win-condition board)
+  (format t "win condition met: ~a" board)
+  (let ((first  (nth (car win-condition) board))
+        (second (nth (cadr win-condition) board))
+        (third  (nth (caddr win-condition) board)))
+    (and first second third
+         (= first second third))))
