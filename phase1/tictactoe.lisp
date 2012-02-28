@@ -22,14 +22,14 @@
            (f (processed current remaining acc)
                (cond ((eq (list-length processed) *board-size*) acc)
                      ((null current) (f (append processed (list current)) (car remaining) (cdr remaining) (add-board acc processed remaining)))
-                     (t (append processed (list current)) (car remaining) (cdr remaining) acc))))
+                     (t (f (append processed (list current)) (car remaining) (cdr remaining) acc)))))
     (f '() (car board) (cdr board) '())))
 
 (defun x? (player)
-  (= (cadr (assoc 'X *players*)) player))
+  (= (cdr (assoc 'X *players*)) player))
 
 (defun o? (player)
-  (= (cadr (assoc 'O *players*)) player))
+  (= (cdr (assoc 'O *players*)) player))
 
 (defmacro with-gs-vars ((game-state &rest vars) &body body)
   "Example usage: (with-all (game-state moves vars) (body))"
@@ -72,10 +72,10 @@
 (defun set-rankings (game-state)
   (with-gs-vars (game-state board moves player)
     (let ((board-rank (gethash board *board-rankings*)))
-      (cond (board-rank (board-rank))
+      (cond (board-rank board-rank)
             ((winner board) (setf board-rank (winner board)))
-            (t (let ((rank-fun (if (x? player) #'max #'min)))
-                 (setf board-rank (apply rank-fun (loop for move in moves collect (set-rankings move))))))))))
+            (moves (let ((rank-fun (if (x? player) #'max #'min)))
+                     (setf board-rank (apply rank-fun (loop for move in moves collect (set-rankings move))))))))))
 
 (defun winner (board)
   (let ((win-conditions '(
@@ -92,11 +92,14 @@
                           ;; diagonal wins
                           (0 4 8)
                           (6 4 2))))
-    (loop for win-condition in win-conditions
-       when (win-condition-met win-condition board) return (nth (car win-condition) board))))
+    (or (loop for win-condition in win-conditions
+           when (win-condition-met win-condition board) return (nth (car win-condition) board))
+        (if (board-fullp board) 0))))
+
+(defun board-fullp (board)
+  (not (position nil board)))
 
 (defun win-condition-met (win-condition board)
-  (format t "win condition met: ~a" board)
   (let ((first  (nth (car win-condition) board))
         (second (nth (cadr win-condition) board))
         (third  (nth (caddr win-condition) board)))
