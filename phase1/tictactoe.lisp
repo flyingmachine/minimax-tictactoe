@@ -5,7 +5,6 @@
 (defparameter *current-game-state* nil)
 (defparameter *board-rankings* (make-hash-table :test #'equal))
 
-
 (defun game-state (board player-who-just-moved)
   (list board
         player-who-just-moved
@@ -31,11 +30,8 @@
 (defun x? (player)
   (= (cdr (assoc 'X *players*)) player))
 
-(defun o? (player)
-  (= (cdr (assoc 'O *players*)) player))
-
 (defmacro with-gs-vars ((game-state &rest vars) &body body)
-  "Example usage: (with-all (game-state moves vars) (body))"
+  "Example usage: (with-gs-vars (game-state moves vars) (body))"
   `(let ,(loop for var in vars collect `(,var (,var ,game-state)))
      ,@body))
 
@@ -54,14 +50,7 @@
         (t " ")))
 
 (defun row (board rownum)
-  (do ((row '())
-       (bottom (* 3 (1- rownum)))
-       (top (* 3 rownum))
-       (count 0 (1+ count))
-       (processed-board board (cdr processed-board)))
-      ((eql count 9) (nreverse row))
-    (if (and (>= count bottom) (< count top))
-        (push (cell-for-display (car processed-board)) row))))
+  (subseq board (* 3 (1- rownum)) (* 3 rownum)))
 
 (defun print-row (board rownum)
   (format t "~{ ~a ~^|~}" (row board rownum)))
@@ -115,7 +104,8 @@
          (= first second third))))
 
 (defun board-rank (board)
-  (if (null board)
+  (if (null board) ;board should only be move on the first iteration
+                   ;in max-move
       -2
       (gethash board *board-rankings*)))
 
