@@ -1,7 +1,10 @@
 (defparameter *board-size* 9)
 (defparameter *players* '((X . 1) (O . -1)))
 (defparameter *starting-board* '(nil nil nil nil nil nil nil nil nil))
-(defparameter *board-rankings* (make-hash-table))
+(defparameter *game-tree* nil)
+(defparameter *current-game-state* nil)
+(defparameter *board-rankings* (make-hash-table :test #'equal))
+
 
 (defun game-state (board player)
   (list board
@@ -73,9 +76,12 @@
   (with-gs-vars (game-state board moves player)
     (let ((board-rank (gethash board *board-rankings*)))
       (cond (board-rank board-rank)
-            ((winner board) (setf board-rank (winner board)))
+            ((winner board) (set-ranking board (winner board)))
             (moves (let ((rank-fun (if (x? player) #'max #'min)))
-                     (setf board-rank (apply rank-fun (loop for move in moves collect (set-rankings move))))))))))
+                     (set-ranking board (apply rank-fun (loop for move in moves collect (set-rankings move))))))))))
+
+(defun set-ranking (board value)
+  (setf (gethash board *board-rankings*) value))
 
 (defun winner (board)
   (let ((win-conditions '(
@@ -105,3 +111,28 @@
         (third  (nth (caddr win-condition) board)))
     (and first second third
          (= first second third))))
+
+(defun initialize-game ()
+  (setf *current-game-state* (setf *game-tree* (game-state *starting-board* -1)))
+  (set-rankings *game-tree*))
+
+(defun board-rank (board)
+  (if (null board)
+      -2
+      (gethash board *board-rankings*)))
+
+(defun ai-choose-move (game-state)
+  (with-gs-vars (game-state moves)
+    (setf *current-game-state* (max-move moves))))
+
+(defun ai-move ()
+  (ai-choose-move *current-game-state*)
+  (draw-board (board *current-game-state*)))
+
+(defun max-move (moves)
+  (let ((max nil))
+    (labels ((compare (move)
+               (if (> (board-rank (board move)) (board-rank (board max)))
+                   (setf max move))))
+      (mapc #'compare moves))
+    max))
