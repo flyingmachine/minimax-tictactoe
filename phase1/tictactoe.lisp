@@ -6,14 +6,14 @@
 (defparameter *board-rankings* (make-hash-table :test #'equal))
 
 
-(defun game-state (board player)
+(defun game-state (board player-who-just-moved)
   (list board
-        player
-        (generate-moves board player)))
+        player-who-just-moved
+        (generate-moves board player-who-just-moved)))
 
-(defun generate-moves (board player)
+(defun generate-moves (board player-who-just-moved)
   "Returns a list of game states, one for each empty board cell"
-  (let ((next-player (* -1 player)))
+  (let ((next-player (* -1 player-who-just-moved)))
     (mapcar (lambda (new-board)
               (game-state new-board next-player))
           (new-boards board next-player))))
@@ -79,7 +79,7 @@
     (let ((board-rank (gethash board *board-rankings*)))
       (cond (board-rank board-rank)
             ((winner board) (set-ranking board (winner board)))
-            (moves (let ((rank-fun (if (x? player) #'max #'min)))
+            (moves (let ((rank-fun (if (x? player) #'min #'max))) ; x just moved; o is making move
                      (set-ranking board (apply rank-fun (loop for move in moves collect (set-rankings move))))))))))
 
 (defun set-ranking (board value)
@@ -130,8 +130,7 @@
 
 (defun ai-move ()
   (ai-choose-move *current-game-state*)
-  (end-turn)
-  (human-move))
+  (end-turn 'ai))
 
 (defun max-move (moves)
   (let ((max nil))
@@ -141,13 +140,14 @@
       (mapc #'compare moves))
     max))
 
-(defun end-turn ()
+(defun end-turn (turn)
   (with-gs-vars (*current-game-state* board)
     (draw-board board)
     (let ((winner (winner board)))
       (cond ((eql winner -1) (format t "You won!~%") (prompt-restart))
             ((eql winner 1) (format t "You lost!~%") (prompt-restart))
-            ((eql winner 0) (format t "It was a draw!~%") (prompt-restart))))))
+            ((eql winner 0) (format t "It was a draw!~%") (prompt-restart))
+            (t (if (eql 'ai turn) (human-move) (ai-move)))))))
 
 (defun prompt-restart ()
   (format t "Play again? y/n: ")
@@ -168,5 +168,4 @@
         (format t "That position is already taken, stupid meat machine!~%")
         (human-move))
       (setf *current-game-state* (find -1 moves :key #'(lambda (move) (nth move-position (board move)))))
-      (end-turn)
-      (ai-move))))
+      (end-turn 'human))))
