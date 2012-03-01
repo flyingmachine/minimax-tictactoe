@@ -49,7 +49,9 @@
   (cadr game-state))
 
 (defun cell-for-display (cell)
-  (if cell cell " "))
+  (cond ((eql cell 1) "X")
+        ((eql cell -1) "O")
+        (t " ")))
 
 (defun row (board rownum)
   (do ((row '())
@@ -68,10 +70,10 @@
   (loop for i from 1 to 3 do
        (print-row board i)
        (when (not (eql i 3))
-         (format t "~%-----------~%"))))
+         (format t "~%-----------~%")))
+  (format t "~%"))
 
-;; replace with cond
-;; write macro to create board player and moves vars
+;; *** For rankings
 (defun set-rankings (game-state)
   (with-gs-vars (game-state board moves player)
     (let ((board-rank (gethash board *board-rankings*)))
@@ -112,14 +114,15 @@
     (and first second third
          (= first second third))))
 
-(defun initialize-game ()
-  (setf *current-game-state* (setf *game-tree* (game-state *starting-board* -1)))
-  (set-rankings *game-tree*))
-
 (defun board-rank (board)
   (if (null board)
       -2
       (gethash board *board-rankings*)))
+
+;; *** Game flow
+(defun initialize-game ()
+  (setf *current-game-state* (setf *game-tree* (game-state *starting-board* -1)))
+  (set-rankings *game-tree*))
 
 (defun ai-choose-move (game-state)
   (with-gs-vars (game-state moves)
@@ -127,7 +130,8 @@
 
 (defun ai-move ()
   (ai-choose-move *current-game-state*)
-  (draw-board (board *current-game-state*)))
+  (end-turn)
+  (human-move))
 
 (defun max-move (moves)
   (let ((max nil))
@@ -136,3 +140,33 @@
                    (setf max move))))
       (mapc #'compare moves))
     max))
+
+(defun end-turn ()
+  (with-gs-vars (*current-game-state* board)
+    (draw-board board)
+    (let ((winner (winner board)))
+      (cond ((eql winner -1) (format t "You won!~%") (prompt-restart))
+            ((eql winner 1) (format t "You lost!~%") (prompt-restart))
+            ((eql winner 0) (format t "It was a draw!~%") (prompt-restart))))))
+
+(defun prompt-restart ()
+  (format t "Play again? y/n: ")
+  (let ((response (string-downcase (read-line))))
+    (cond ((equal "y" response) (restart-game))
+          ((equal "n" response))
+          (t (format t "Not a valid response, buddy!~%") (prompt-restart)))))
+
+(defun restart-game ()
+  (setf *current-game-state* *game-tree*)
+  (ai-move))
+
+(defun human-move ()
+  (format t "Enter your move, human: ")
+  (with-gs-vars ( *current-game-state* board moves)
+    (let ((move-position (1- (parse-integer (read-line)))))
+      (when (nth move-position board)
+        (format t "That position is already taken, stupid meat machine!~%")
+        (human-move))
+      (setf *current-game-state* (find -1 moves :key #'(lambda (move) (nth move-position (board move)))))
+      (end-turn)
+      (ai-move))))
