@@ -12,6 +12,7 @@
 
 (defun generate-moves (board player-who-just-moved)
   "Returns a list of game states, one for each empty board cell"
+  ; since 1 and -1 are X and 0, multiple by -1 to alternate between them
   (let ((next-player (* -1 player-who-just-moved)))
     (mapcar (lambda (new-board)
               (game-state new-board next-player))
@@ -21,19 +22,21 @@
   "given a board, generates new boards for every empty cell"
   (labels ((add-board (acc processed remaining)
                       (append acc (list (append processed (list player-making-move) remaining))))
-           (f (processed current remaining acc)
+           (process-board-cell (processed current remaining acc)
                (cond ((eq (list-length processed) *board-size*) acc)
-                     ((null current) (f (append processed (list current)) (car remaining) (cdr remaining) (add-board acc processed remaining)))
-                     (t (f (append processed (list current)) (car remaining) (cdr remaining) acc)))))
-    (f '() (car board) (cdr board) '())))
+                     ((null current) (process-board-cell (append processed (list current)) (car remaining) (cdr remaining) (add-board acc processed remaining)))
+                     (t (process-board-cell (append processed (list current)) (car remaining) (cdr remaining) acc)))))
+    (process-board-cell '() (car board) (cdr board) '())))
 
 (defun x? (player)
   (= (cdr (assoc 'X *players*)) player))
 
 (defmacro with-gs-vars ((game-state &rest vars) &body body)
   "Example usage: (with-gs-vars (game-state moves vars) (body))"
-  `(let ,(loop for var in vars collect `(,var (,var ,game-state)))
-     ,@body))
+  (let ((evald-game-state-name (gensym)))
+    `(let* ((,evald-game-state-name ,game-state)
+            ,@(loop for var in vars collect `(,var (,var ,evald-game-state-name))))
+           ,@body)))
 
 (defun moves (game-state)
   (caddr game-state))
@@ -50,7 +53,7 @@
         (t " ")))
 
 (defun row (board rownum)
-  (subseq board (* 3 (1- rownum)) (* 3 rownum)))
+  (mapcar #'cell-for-display (subseq board (* 3 (1- rownum)) (* 3 rownum))))
 
 (defun print-row (board rownum)
   (format t "~{ ~a ~^|~}" (row board rownum)))
