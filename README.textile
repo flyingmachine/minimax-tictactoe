@@ -2,7 +2,7 @@ h1. Minimax Demonstrated Using Tic-Tac-Toe in Ruby and Lisp
 
 h2. Ruby
 
-To run the ruby version, make sure tictactoe.rb has execute privileges and run ./tictactoe.rb run.
+To run the ruby version, make sure tictactoe.rb has execute privileges and run @./tictactoe.rb@.
 
 h2. Lisp
 
