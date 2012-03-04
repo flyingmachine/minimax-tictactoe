@@ -1,3 +1,5 @@
+#!/usr/bin/env ruby
+
 # This is a pretty naive implementation of Tic-Tac-Toe meant to
 # demonstrate the minimax algorithm. Note that it takes awhile to
 # start up - 30 seconds on a 2010 mac book air. Also note that the
@@ -107,7 +109,7 @@ class Game
       describe_final_game_state
       puts "Play again? y/n"
       answer = gets
-      if answer.downcase == 'y'
+      if answer.downcase.strip == 'y'
         @game_state = @initial_game_state
         turn
       else
@@ -166,3 +168,6 @@ class Game
     end
   end
 end
+
+Game.new.turn
+

@@ -1,0 +1,16 @@
+h1. Minimax Demonstrated Using Tic-Tac-Toe in Ruby and Lisp
+
+h2. Ruby
+
+To run the ruby version, make sure tictactoe.rb has execute privileges
+and run ./tictactoe.rb run.
+
+h2. Lisp
+
+For the lisp version, you need install a Lisp implementation. I use
+clisp. On a max, you can install that with "brew install clisp".
+
+After that, +cd+ to the "phase1" directory and run +clisp+ in your
+shell. When clisp loads, run +(load 'tictactoe)+
+
+Enter +(exit)+ to end the session.
