@@ -32,3 +32,15 @@
 
 (defn player [game-state]
   (first game-state))
+
+(defn cell-for-display [cell]
+  (cond (= cell 1) "X"
+        (= cell -1) "O"
+        true " "))
+
+(defn row [board rownum]
+  (reduce (fn [result current] (conj result (cell-for-display current))) [] (subvec board (* 3 (dec rownum)) (* 3 rownum))))
+
+(defn print-row [board rownum]
+  (let [r (row board rownum)]
+    (format " %s | %s | %s " (r 0) (r 1) (r 2))))
