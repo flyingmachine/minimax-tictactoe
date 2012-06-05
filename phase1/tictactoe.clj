@@ -1,10 +1,12 @@
 (ns fms.tictactoe)
-(declare generate-moves-memo new-boards-memo)
+(declare generate-moves-memo new-boards-memo turn get-input ranking-memo)
 
 (defn game-state [player-who-just-moved board]
   (list player-who-just-moved
         board
         (generate-moves-memo player-who-just-moved board)))
+
+(def game-state-memo (memoize game-state))
 
 ;; TODO ensure that this returns a vector
 (defn generate-moves [player-who-just-moved board]
@@ -95,9 +97,66 @@
         (if (board-full? board) 0))))
 
 (defn ranking [game-state]
-  (with-gs-vars [game-state moves player]
+  (with-gs-vars [game-state moves player board]
     (let [win (winner board)]
       (cond win win
             moves (let [rank-fun (if (x? player) min max)]
-                    (apply rank-fun (map ranking moves)))))))
+                    (apply rank-fun (map ranking-memo moves)))))))
 
+(def ranking-memo (memoize ranking))
+
+;; Game Flow
+(defn start []
+  (turn "" (game-state-memo -1 [nil nil nil nil nil nil nil nil nil])))
+
+(defn play-again-prompt []
+  (println "Play again, puny ape?")
+  (let [answer (get-input)]
+    (if (= answer "y")
+      (start))))
+
+(defn handle-win [game-state]
+  (with-gs-vars [game-state board]
+    (let [w (winner board)]
+      (if (x? w)
+        (println "You lost, you sad, fleshy creature!")
+        (println "You won... this time!"))))
+  (play-again-prompt))
+
+(defn handle-draw [game-state]
+  (println "It was a draw! How about that.")
+  (play-again-prompt))
+
+(defn ai-choose-move [game-state]
+  (first (sort-by ranking-memo > (moves game-state))))
+
+(defn parse-int [s]
+  (Integer. (re-find #"[0-9]*" s)))
+
+(defn human-choose-move [game-state]
+  (println "Enter your move, human:")
+  (with-gs-vars [game-state moves]
+    (let [selection (dec (parse-int (get-input)))]
+      (if ((board game-state) selection)
+        (do (println "That position is already taken, stupid meat machine!")
+            (human-choose-move game-state))
+        (first (filter (fn [move] (= -1 ((board move) selection))) moves))))))
+
+(defn turn [current-player game-state]
+  (if (= "q" game-state)
+    (println "Goodbye, weakling!")
+    (do (with-gs-vars [game-state board]
+          (print-board board)
+          (cond (winner board) (handle-win game-state)
+                (board-full? board) (handle-draw game-state)
+                true (if (= "ai" current-player)
+                       (turn "human" (human-choose-move game-state))
+                       (turn "ai" (ai-choose-move game-state))))))))
+
+(defn get-input []
+  (clojure.string/trim (read-line)))
+
+;; TODO how do I make this work in lein repl?
+(try (defn get-input []
+       (clojure.string/trim (swank.core/with-read-line-support (read-line))))
+     (catch ClassNotFoundException e))
