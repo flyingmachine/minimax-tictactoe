@@ -93,8 +93,7 @@
                          ;; diagonal wins
                          (0 4 8)
                          (6 4 2))]
-    (or (when-let [win (first (drop-while (complement (partial win-condition-met? board)) win-conditions))] (board (first win)))
-        (if (board-full? board) 0))))
+    (when-let [win (first (drop-while (complement (partial win-condition-met? board)) win-conditions))] (board (first win)))))
 
 (defn ranking [game-state]
   (with-gs-vars [game-state moves player board]
