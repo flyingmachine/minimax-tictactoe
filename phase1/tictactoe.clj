@@ -106,7 +106,7 @@
 
 ;; Game Flow
 (defn start []
-  (turn "" (game-state-memo -1 [nil nil nil nil nil nil nil nil nil])))
+  (turn "" (game-state-memo -1 (repeat 9 nil))))
 
 (defn play-again-prompt []
   (println "Play again, puny ape?")
