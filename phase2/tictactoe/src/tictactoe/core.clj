@@ -1,4 +1,5 @@
-(ns tictactoe.core)
+(ns tictactoe.core
+  (:require clojure.contrib.seq-utils))
 (declare generate-moves-memo new-boards-memo turn get-input ranking-memo)
 
 (defn game-state [player-who-just-moved board]
@@ -17,13 +18,8 @@
 
 (defn new-boards [player-making-move board]
   "given a board, generates new boards for every empty cell"
-  (letfn [(add-board [acc processed remaining]
-            (conj acc (into (conj processed player-making-move) remaining)))
-          (process-board-cell [processed current remaining acc]
-            (cond (= (count processed) (count board)) acc
-                  (nil? current) (process-board-cell (conj processed current) (first remaining) (rest remaining) (add-board acc processed remaining))
-                  true (process-board-cell (conj processed current) (first remaining) (rest remaining) acc)))]
-    (process-board-cell [] (first board) (rest board) [])))
+  (let [nil-positions (map first (filter #(nil? (second %)) (map vector (iterate inc 0) board)))]
+    (map #(assoc board % player-making-move) nil-positions)))
 
 (def new-boards-memo (memoize new-boards))
 
@@ -34,7 +30,7 @@
   "Example usage: (with-gs-vars (game-state moves vars) (body))"
   (let [evald-game-state-name (gensym)]
     `(let [~evald-game-state-name ~game-state
-           ~@(reduce into () (map (fn [var] `(~var (~(keyword var) ~evald-game-state-name))) vars))]
+           ~@(reduce into [] (map (fn [var] `(~var (~(keyword var) ~evald-game-state-name))) vars))]
        ~@body)))
 
 (defn cell-for-display [cell]
@@ -42,12 +38,10 @@
         (= cell -1) " O "
         true "   "))
 
-(defn row [board rownum]
-  (reduce (fn [result current] (conj result (cell-for-display current))) [] (subvec board (* 3 (dec rownum)) (* 3 rownum))))
-
 (defn rows [board]
   (partition 3 board))
 
+;; TODO use this in winner?
 (defn cols [board]
   (vals (group-by #(mod % 3) board)))
 
