@@ -2,9 +2,9 @@
 (declare generate-moves-memo new-boards-memo turn get-input ranking-memo)
 
 (defn game-state [player-who-just-moved board]
-  (list player-who-just-moved
-        board
-        (generate-moves-memo player-who-just-moved board)))
+  {:player player-who-just-moved
+   :board board
+   :moves (generate-moves-memo player-who-just-moved board)})
 
 (def game-state-memo (memoize game-state))
 
@@ -34,17 +34,8 @@
   "Example usage: (with-gs-vars (game-state moves vars) (body))"
   (let [evald-game-state-name (gensym)]
     `(let [~evald-game-state-name ~game-state
-           ~@(reverse (reduce into () (map (fn [var] `(~var (~var ~evald-game-state-name))) vars)))]
+           ~@(reduce into () (map (fn [var] `(~var (~(keyword var) ~evald-game-state-name))) vars))]
        ~@body)))
-
-(defn moves [game-state]
-  (last  game-state))
-
-(defn board [game-state]
-  (second game-state))
-
-(defn player [game-state]
-  (first game-state))
 
 (defn cell-for-display [cell]
   (cond (= cell 1) " X "
@@ -127,7 +118,7 @@
   (play-again-prompt))
 
 (defn ai-choose-move [game-state]
-  (first (sort-by ranking-memo > (moves game-state))))
+  (first (sort-by ranking-memo > (:moves game-state))))
 
 (defn parse-int [s]
   (Integer. (re-find #"[0-9]*" s)))
@@ -136,10 +127,10 @@
   (println "Enter your move, human:")
   (with-gs-vars [game-state moves]
     (let [selection (dec (parse-int (get-input)))]
-      (if ((board game-state) selection)
+      (if ((:board game-state) selection)
         (do (println "That position is already taken, stupid meat machine!")
             (human-choose-move game-state))
-        (first (filter (fn [move] (= -1 ((board move) selection))) moves))))))
+        (first (filter (fn [move] (= -1 ((:board move) selection))) moves))))))
 
 (defn turn [current-player game-state]
   (if (= "q" game-state)

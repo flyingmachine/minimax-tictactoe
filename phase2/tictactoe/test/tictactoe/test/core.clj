@@ -11,3 +11,5 @@
   "It should return all possible boards for the player making the move"
   (is (= (new-boards -1 [1 -1 1, -1 1 -1, 1 nil nil])
          [[1 -1 1, -1 1 -1, 1 -1 nil] [1 -1 1, -1 1 -1, 1 nil -1]])))
+
+(deftest test-generate-moves-changes-player)
