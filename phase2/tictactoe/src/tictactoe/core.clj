@@ -1,5 +1,4 @@
-(ns tictactoe.core
-  (:require (clojure [walk :as walk])))
+(ns tictactoe.core)
 
 (declare generate-moves-memo new-boards-memo turn get-input ranking-memo)
 
@@ -54,7 +53,7 @@
 
 (defn add-position-numbers [board]
   (let [counter (atom 0)]
-    (walk/walk (fn [cell] (swap! counter inc) (or cell (str @counter))) identity board)))
+    (map (fn [cell] (swap! counter inc) (or cell (str @counter))) board)))
 
 (defn print-board [board]
   (print (board-display board)))
