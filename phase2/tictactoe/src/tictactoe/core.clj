@@ -1,5 +1,5 @@
-(ns tictactoe.core
-  (:require clojure.contrib.seq-utils))
+(ns tictactoe.core)
+
 (declare generate-moves-memo new-boards-memo turn get-input ranking-memo)
 
 (defn game-state [player-who-just-moved board]
@@ -84,14 +84,14 @@
   (with-gs-vars [game-state moves player board]
     (let [win (winner board)]
       (cond win win
-            moves (let [rank-fun (if (x? player) min max)]
-                    (apply rank-fun (map ranking-memo moves)))))))
+            (not (empty? moves)) (let [rank-fun (if (x? player) min max)]
+                                   (apply rank-fun (map ranking moves)))))))
 
 (def ranking-memo (memoize ranking))
 
 ;; Game Flow
 (defn start []
-  (turn "" (game-state-memo -1 (repeat 9 nil))))
+  (turn "" (game-state-memo -1 (vec (repeat 9 nil)))))
 
 (defn play-again-prompt []
   (println "Play again, puny ape?")
