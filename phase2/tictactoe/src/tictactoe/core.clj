@@ -1,4 +1,5 @@
-(ns tictactoe.core)
+(ns tictactoe.core
+  (:require (clojure [walk :as walk])))
 
 (declare generate-moves-memo new-boards-memo turn get-input ranking-memo)
 
@@ -36,7 +37,7 @@
 (defn cell-for-display [cell]
   (cond (= cell 1) " X "
         (= cell -1) " O "
-        true "   "))
+        true (str " " cell " ")))
 
 (defn rows [board]
   (partition 3 board))
@@ -49,7 +50,11 @@
   (str (apply str (interpose \| (map cell-for-display row))) "\n"))
 
 (defn board-display [board]
-  (apply str (interpose "-----------\n" (map row-display (rows board)))))
+  (apply str (interpose "-----------\n" (map row-display (rows (add-position-numbers board))))))
+
+(defn add-position-numbers [board]
+  (let [counter (atom 0)]
+    (walk/walk (fn [cell] (swap! counter inc) (or cell (str @counter))) identity board)))
 
 (defn print-board [board]
   (print (board-display board)))
@@ -78,14 +83,17 @@
                          ;; diagonal wins
                          (0 4 8)
                          (6 4 2))]
-    (when-let [win (first (drop-while (complement (partial win-condition-met? board)) win-conditions))] (board (first win)))))
+    (or (when-let [win (first (drop-while (complement (partial win-condition-met? board)) win-conditions))]
+          (board (first win)))
+        (if (board-full? board) 0))))
 
 (defn ranking [game-state]
   (with-gs-vars [game-state moves player board]
     (let [win (winner board)]
       (cond win win
             (not (empty? moves)) (let [rank-fun (if (x? player) min max)]
-                                   (apply rank-fun (map ranking moves)))))))
+                                   (apply rank-fun (remove nil? (map ranking-memo moves))))))))
+
 
 (def ranking-memo (memoize ranking))
 
