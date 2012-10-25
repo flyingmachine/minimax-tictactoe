@@ -18,7 +18,7 @@
 
 (defn new-boards [player-making-move board]
   "given a board, generates new boards for every empty cell"
-  (let [nil-positions (map first (filter #(nil? (second %)) (map vector (iterate inc 0) board)))]
+  (let [nil-positions (map first (filter #(nil? (second %)) (map-indexed vector board)))]
     (map #(assoc board % player-making-move) nil-positions)))
 
 (def new-boards-memo (memoize new-boards))
@@ -60,7 +60,7 @@
 
 ;; Ranking
 (defn board-full? [board]
-  (empty? (filter nil? board)))
+  (not-any? nil? board))
 
 (defn win-condition-met? [board win-condition]
   (let [p1 (board (first  win-condition))
