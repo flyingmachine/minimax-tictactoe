@@ -1,4 +1,4 @@
-h1. Minimax Demonstrated Using Tic-Tac-Toe in Ruby and Lisp
+h1. Minimax Demonstrated Using Tic-Tac-Toe in Ruby, Lisp and Haskell
 
 h2. Ruby
 
@@ -15,3 +15,9 @@ Enter @(exit)@ to end the session.
 h2. Clojure
 
 Enter the fms.tictactoe namespace and run @(start)@
+
+h2. Haskell
+
+Compile with @ghc —-make tictactoe.hs@ and run @./tictactoe@ or load it into ghci with @:l tictactoe.hs@ and run @main@.
+
+Instructions for installing the Glasgow Haskell Compiler (GHC) can be found here: http://www.haskell.org/platform/
