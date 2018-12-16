@@ -1,4 +1,4 @@
-h1. Minimax Demonstrated Using Tic-Tac-Toe in Ruby, Lisp and Haskell
+h1. Minimax Demonstrated Using Tic-Tac-Toe in Ruby, Lisp, Haskell and C#
 
 h2. Ruby
 
@@ -21,3 +21,8 @@ h2. Haskell
 Compile with @ghc —-make tictactoe.hs@ and run @./tictactoe@ or load it into ghci with @:l tictactoe.hs@ and run @main@.
 
 Instructions for installing the Glasgow Haskell Compiler (GHC) can be found here: http://www.haskell.org/platform/
+
+h3. C#
+
+The C# code is setup to run in "LINQpad":https://www.linqpad.net/ but will
+run in Visual Studio or Visual Studio Code with no functional changes.
