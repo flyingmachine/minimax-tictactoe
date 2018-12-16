@@ -24,5 +24,4 @@ Instructions for installing the Glasgow Haskell Compiler (GHC) can be found here
 
 h3. C#
 
-The C# code is setup to run in "LINQpad":https://www.linqpad.net/ but will
-run in Visual Studio or Visual Studio Code with no functional changes.
+The C# code is setup to run in "LINQpad":https://www.linqpad.net/ but will run in Visual Studio or Visual Studio Code with no functional changes.
