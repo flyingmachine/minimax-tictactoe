@@ -22,6 +22,6 @@ Compile with @ghc —-make tictactoe.hs@ and run @./tictactoe@ or load it into g
 
 Instructions for installing the Glasgow Haskell Compiler (GHC) can be found here: http://www.haskell.org/platform/
 
-h3. C&#35;
+h2. C&#35;
 
 The C&#35; code is setup to run in "LINQpad":https://www.linqpad.net/ but will run in Visual Studio or Visual Studio Code with no functional changes.
